@@ -1,0 +1,68 @@
+# This is a basic workflow to help you implement flake8, tool that will help you to
+# check your code base against coding style (PEP8), programming errors 
+# (like “library imported but unused” and “Undefined name”) and to check cyclomatic complexity.
+name: flake8 Lint + Pytest
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main , usuario]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains two jobs
+  flake8-lint:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest 
+    name: Lint
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.8"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run flake8
+        run: |
+          # ignore errors
+          flake8 --ignore=E1,E23,W503,F403,F401,E402,E501,E302 tests/unit/test_buenas_practicas.py tests/integration/test_integracion.py
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  pytest:
+    needs: flake8-lint # Depends on previous job
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest 
+    timeout-minutes: 10
+
+    name: Pytest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.8"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pytest
+        if [ -f ejemplo/requirements.txt ]; then pip install -r ejemplo/requirements.txt; fi
+    
+    - name: Test with pytest
+      run: |
+        pytest tests/unit/test_buenas_practicas.py -v
+        pytest tests/integration/ -v
