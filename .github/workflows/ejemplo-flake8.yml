@@ -1,0 +1,50 @@
+# This is a basic workflow to help you implement flake8, tool that will help you to
+# check your code base against coding style (PEP8), programming errors 
+# (like “library imported but unused” and “Undefined name”) and to check cyclomatic complexity.
+name: flake8 Lint
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+   branches: [ main ]
+  #pull_request:
+  #  branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Checking coding styling
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Command 1
+          echo Command 2
+      # Flake8 Lint steps    
+      - name: Check out source repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.11"
+      - name: flake8 Lint
+        uses: py-actions/flake8@v2
+        with:
+            ignore: "F401"
+            exclude: "app/__init__.py"
+            max-line-length: "100"
+            path: "app"
