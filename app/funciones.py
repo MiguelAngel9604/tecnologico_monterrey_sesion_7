@@ -15,5 +15,9 @@ def procesar_apellido_materno(apellido_m):
         return apellido_m.capitalize()
     return "Error Apellido Materno"
 
+
 def generar_usuario(nombre, apellido_paterno, apellido_materno):
-    return f"{procesar_nombre(nombre).lower()}.{procesar_apellido_paterno(apellido_paterno).lower()}.{procesar_apellido_materno(apellido_materno).lower()}"
+    nombre_procesado = procesar_nombre(nombre).lower()
+    ap_paterno_procesado = procesar_apellido_paterno(apellido_paterno).lower()
+    ap_materno_procesado = procesar_apellido_materno(apellido_materno).lower()
+    return f"{nombre_procesado}.{ap_paterno_procesado}.{ap_materno_procesado}"
