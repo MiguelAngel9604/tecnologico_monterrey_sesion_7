@@ -273,3 +273,256 @@ flake8 .
 ```
 
 Y usará automáticamente la configuración del archivo.
+
+## GitHub Actions - Eventos Comunes
+
+GitHub Actions puede ejecutarse en respuesta a muchos eventos. Aquí están los más comunes con ejemplos:
+
+### 1. Push (Push a una rama)
+
+Se ejecuta cuando haces push de código a una rama específica.
+
+```yaml
+on:
+  push:
+    branches: [ main, develop ]
+    # Opcional: solo en archivos específicos
+    paths:
+      - 'app/**'
+      - 'tests/**'
+```
+
+**Ejemplo de uso**: Ejecutar tests automáticamente cuando se hace push a `main`.
+
+### 2. Pull Request
+
+Se ejecuta cuando se crea, actualiza o cierra un pull request.
+
+```yaml
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened, closed ]
+```
+
+**Ejemplo de uso**: Validar código antes de hacer merge a `main`.
+
+### 3. Workflow Dispatch (Ejecución Manual)
+
+Permite ejecutar el workflow manualmente desde la pestaña Actions de GitHub.
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+```
+
+**Ejemplo de uso**: Deploy manual a diferentes ambientes.
+
+### 4. Schedule (Tareas Programadas)
+
+Ejecuta el workflow en horarios específicos usando sintaxis cron.
+
+```yaml
+on:
+  schedule:
+    # Todos los días a las 2 AM UTC
+    - cron: '0 2 * * *'
+    # Cada lunes a las 9 AM UTC
+    - cron: '0 9 * * 1'
+    # Cada hora
+    - cron: '0 * * * *'
+```
+
+**Sintaxis cron**: `minuto hora día-del-mes mes día-de-la-semana`
+
+**Ejemplo de uso**: Ejecutar backups diarios o reportes semanales.
+
+### 5. Release
+
+Se ejecuta cuando se publica, crea o edita un release.
+
+```yaml
+on:
+  release:
+    types: [ published, created, edited ]
+```
+
+**Ejemplo de uso**: Deploy automático a producción cuando se publica un release.
+
+### 6. Issues
+
+Se ejecuta cuando se crea, cierra o etiqueta un issue.
+
+```yaml
+on:
+  issues:
+    types: [ opened, closed, labeled, reopened ]
+```
+
+**Ejemplo de uso**: Automatizar respuestas a issues o asignar etiquetas.
+
+### 7. Issue Comment
+
+Se ejecuta cuando se comenta en un issue o pull request.
+
+```yaml
+on:
+  issue_comment:
+    types: [ created ]
+```
+
+**Ejemplo de uso**: Ejecutar tests cuando alguien comenta `/test` en un PR.
+
+### 8. Pull Request Review
+
+Se ejecuta cuando se envía, edita o descarta una revisión de PR.
+
+```yaml
+on:
+  pull_request_review:
+    types: [ submitted, edited, dismissed ]
+```
+
+**Ejemplo de uso**: Notificar cuando un PR es aprobado.
+
+### 9. Create (Crear rama/tag)
+
+Se ejecuta cuando se crea una nueva rama o tag.
+
+```yaml
+on:
+  create:
+    branches: [ main ]
+```
+
+**Ejemplo de uso**: Inicializar configuración cuando se crea una nueva rama.
+
+### 10. Delete (Eliminar rama/tag)
+
+Se ejecuta cuando se elimina una rama o tag.
+
+```yaml
+on:
+  delete:
+    branches: [ feature/* ]
+```
+
+**Ejemplo de uso**: Limpiar recursos cuando se elimina una rama de feature.
+
+### 11. Workflow Run (Workflow en cascada)
+
+Se ejecuta cuando otro workflow termina.
+
+```yaml
+on:
+  workflow_run:
+    workflows: ["CI"]  # Nombre del workflow
+    types: [ completed ]
+    branches: [ main ]
+```
+
+**Ejemplo de uso**: Ejecutar deploy después de que pase el CI.
+
+### 12. Push con Filtros Avanzados
+
+Filtra por ramas, paths y más.
+
+```yaml
+on:
+  push:
+    branches: [ main, develop ]
+    branches-ignore: [ 'main' ]  # Todas excepto main
+    paths:                        # Solo archivos específicos
+      - 'app/**'
+      - 'tests/**'
+      - '*.py'
+    paths-ignore:                 # Ignorar archivos
+      - 'docs/**'
+      - '*.md'
+    tags:
+      - 'v*'                      # Solo tags que empiezan con 'v'
+```
+
+**Ejemplo de uso**: Ejecutar tests solo cuando cambian archivos de código, no documentación.
+
+### Ejemplo Completo: Múltiples Eventos
+
+```yaml
+name: CI/CD Pipeline Completo
+
+on:
+  # Push a ramas principales
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'app/**'
+      - 'tests/**'
+  
+  # Pull requests
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
+  
+  # Release
+  release:
+    types: [ published ]
+  
+  # Ejecución manual
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy environment'
+        required: true
+        default: 'staging'
+  
+  # Tarea programada (backup diario)
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC diario
+  
+  # Cuando se crea un issue
+  issues:
+    types: [ opened, labeled ]
+```
+
+### Tabla de Eventos Más Comunes
+
+| Evento | Cuándo se dispara | Uso común |
+|--------|-------------------|-----------|
+| `push` | Push a rama | CI/CD, tests automáticos |
+| `pull_request` | PR abierto/actualizado | Validación antes de merge |
+| `workflow_dispatch` | Manual desde UI | Deploy manual, testing |
+| `schedule` | Horario programado | Backups, reportes diarios |
+| `release` | Release publicado | Deploy a producción |
+| `issues` | Issue creado/cerrado | Automatización de issues |
+| `workflow_run` | Otro workflow termina | Pipeline en cascada |
+| `create` | Rama/tag creado | Inicialización automática |
+| `delete` | Rama/tag eliminado | Limpieza de recursos |
+
+### Sintaxis Cron - Referencia Rápida
+
+```
+┌───────────── minuto (0 - 59)
+│ ┌─────────── hora (0 - 23)
+│ │ ┌───────── día del mes (1 - 31)
+│ │ │ ┌─────── mes (1 - 12)
+│ │ │ │ ┌───── día de la semana (0 - 6) (0 = domingo)
+│ │ │ │ │
+* * * * *
+```
+
+**Ejemplos de cron:**
+- `'0 2 * * *'` - Todos los días a las 2 AM
+- `'0 9 * * 1'` - Todos los lunes a las 9 AM
+- `'*/15 * * * *'` - Cada 15 minutos
+- `'0 0 1 * *'` - Primer día de cada mes a medianoche
+- `'0 * * * *'` - Cada hora
+- `'*/30 * * * *'` - Cada 30 minutos
